@@ -1,53 +1,74 @@
-# **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
-
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
-
-Overview
+# **Finding Lane Lines on the Road**
+## Kimon Roufas
 ---
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+**Finding Lane Lines on the Road**
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
-
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
-
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+The goals / steps of this project are the following:
+* Make a pipeline that finds lane lines on the road
+* Reflect on your work in a written report
 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+[//]: # (Image References)
 
-1. Describe the pipeline
+[image1]: ./examples/grayscale.jpg "Grayscale"
+[challenge1]: ./writeup_images/challenge1.jpg "Challenge1"
+[challenge2]: ./writeup_images/challenge2.jpg "Challenge1"
+[challenge3]: ./writeup_images/challenge3.jpg "Challenge1"
+[perspective]: ./writeup_images/perspective_adjustment.jpg "Perspective Adjustment"
 
-2. Identify any shortcomings
-
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
-
-
-The Project
 ---
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+### Reflection
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/83ec35ee-1e02-48a5-bdb7-d244bd47c2dc/lessons/8c82408b-a217-4d09-b81d-1bda4c6380ef/concepts/4f1870e0-3849-43e4-b670-12e6f2d4b7a7) if you haven't already.
+### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 
-**Step 2:** Open the code in a Jupyter Notebook
+Working on this project I quickly realized that solving the static images and basic videos was a bunch easier than the challenge video. Therefore, I grabbed three of what seemed like the worst frames from the challenge video and included them in my static testing. These are the frames selected:
 
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out <A HREF="https://www.packtpub.com/books/content/basics-jupyter-notebook-and-python" target="_blank">Cyrille Rossant's Basics of Jupyter Notebook and Python</A> to get started.
+![alt text][challenge1]
+![alt text][challenge2]
+![alt text][challenge3]
 
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
+My pipeline consisted of 11 steps:
 
-`> jupyter notebook`
+1. *Convert to Grayscale*: Doing some research I learned that there are more than one grayscale conversion formulas and that the default conversions are usually designed so that the resulting image is pleasing to the human eye. A typical formula is Y=0.299R+0.587G+0.114B, where the R, G, and B contributions from each pixel are not equally considered. For this project, I set out to pick a formula that would be more pleasing to my lane detection algorithm and make the challenge video easier to deal with. After experimentation I found that picking Y=R (select the red channel), provided a great result and very meaningful improvement. Here are [Seven grayscale conversion algorithms](http://www.tannerhelland.com/3643/grayscale-image-algorithm-vb6/) with example images to help illustrate.
 
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
+1. *Gaussian blur*: Get rid of some noise, settled on `kernel_size=5`
 
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
+1. *Canny transform*: Detect edges in the image, I used a `low_threshold=64` and `high_threshold=192`.
 
+1. *Calculate mask trapezoid*: Important to get rid of as many edges detected in trees, the hills, other vehicles, etc. Critical! But, not a complete solution for focusing in on the lane lines, especially since videos may come from cameras located in varying positions recording the road. Another consideration was to be video/frame resolution agnostic when defining the mask.
+
+1. *Hough transform*: This transform essentially joins multiple detected lines that are likely part of the same physical edge in the image, i.e. they are inline with each other, have small gaps breaking what should have been a single line into multiple segments, etc. For a variety of reasons, mostly due to noise, the Canny edge detection will not give you perfect results you might wish for, and Hough is required for making some sense of the situation.
+
+1. *Split left and right lines*: I used a basic heuristic here. I picked a vertical mid line and split the list of lines into left and right collections by checking wither both end-points were on the left or right half of the frame.
+
+1. *Reject mostly horizontal lines*: The challenge video include part of the vehicle's hood which reflected all sorts of shapes. Masking it out wasn't an option because I'd lose valuable data in other videos. I filtered out all lines with `-0.5 < slope < 0.5`, as well as infinite slope (vertical lines)
+
+    *Perspective adjustment and line filtering (not used)*: Here I considered several algorithms in an attempt to reject any lines not "stacking up". My theory was that if I adjusted for image perspective it would be easier to further filter lines. The results didn't work out as well as I would have hoped, here's an example image of the masked region with the perspective backed out using a very simple trapezoidal to rectangular mapping. The tall red edges are actually a stack up of numerous shorter edge lines. Ultimately, I didn't utilize this approach.
+
+    ![alt text][perspective]
+
+1. *Single-frame line fitting/averaging*: I decided that longer lines had to carry more weight as that was information gleaned and calculated by the Hough transform that connected lines that were very likely part of longer edges in the image. So, I used a weighted average of the end-point coordinates with line-length as the weighting.
+
+1. *Line extrapolation*: By this point I had a single line representative of the left lane, and a corresponding one for the right lane. I extrapolated them to the top and bottom edges of my original mask. This produced a nice result, when there were enough edges in a frame. In some cases though it was not possible to calculate a left or right lane line from a single frame, or, the detected edges were a bit too far ahead and the road had started curving. This last issue had the effect of making my predicted lines swing around a bit. To solve this, I:
+
+1. *Multi-frame averaging*: I created a ring buffer to store the last 10 lane predictions for each lane. In each frame I calculated the extrapolated lane prediction, added it to the buffer, and then averaged the lot of them to get a final result. This eliminated a good amount of jitter and equally importantly, filled in a some frames where a lane prediction was not possible. Stuffing more frames into the buffer was a trade-off between jitter and delayed response when the actual lane line moved in the video. 10 frames seemed about right.
+
+1. *Weighted-multi-frame averaging*: I made one last addition when I decided that frames that included longer detected edges should count for more than predicted lane lines from frames with little "signal". I updated my ring buffer to store the maximum edge line length from each frame, and then I used that information in a weighted average calculation of the 10 last frames.
+
+### 2. Identify potential shortcomings with your current pipeline
+
+One short-coming would be detecting cat-eyes that are used on some roads as lane markers. In some cases, such as the challenge video, the right lane uses cat-eyes when going over part of the bridge. This caused the problem of relying on longer edges that were further away. On a straight road this would be fine, however on a curved road, such as in the challenge video, this had a larger impact on the position of the single-frame predicted lane line.
+
+Another shortcoming has to do with shadows from trees over the road surface.
+
+### 3. Suggest possible improvements to your pipeline
+
+1. One improvement would be to use more sophisticated and adaptive grayscale conversions. I would try segmenting the frame into a grid and applying local decisions with brightness and contrast settings, as well as maybe a different RGB mix to optimize the edge detection in each area of the frame.
+
+1. I'd also develop an adaptive mask that would narrow down the area of eligible edge lines based on the currently predicted lane line. For instance, reject any detected edge lines that aren't parallel to the predicted lane line (whithin a margin) and are more than some number of pixels away. This approach would rely on the theory that there is continuity between frames.
+
+1. I'd spend more time working on the parameters, maybe consider a way of scoring the results and then optimizing the parameter selection.
+
+1. Lastly, while using 2 videos is fine, and 3 videos is better, collecting many additional videos in different conditions I am sure would reveal ways to make this algorithm more robust.
