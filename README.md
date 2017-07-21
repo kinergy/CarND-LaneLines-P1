@@ -1,6 +1,4 @@
 # **Finding Lane Lines on the Road**
-## Kimon Roufas
----
 
 **Finding Lane Lines on the Road**
 
