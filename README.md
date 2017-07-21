@@ -6,14 +6,6 @@ The goals / steps of this project are the following:
 * Make a pipeline that finds lane lines on the road
 * Reflect on your work in a written report
 
-
-[//]: # (Image References)
-
-[image1]: ./examples/grayscale.jpg "Grayscale"
-[challenge1]: ./writeup_images/challenge1.jpg "Challenge1"
-[challenge2]: ./writeup_images/challenge2.jpg "Challenge1"
-[challenge3]: ./writeup_images/challenge3.jpg "Challenge1"
-[perspective]: ./writeup_images/perspective_adjustment.jpg "Perspective Adjustment"
 ---
 
 ### Reflection
@@ -22,9 +14,9 @@ The goals / steps of this project are the following:
 
 Working on this project I quickly realized that solving the static images and basic videos was a bunch easier than the challenge video. Therefore, I grabbed three of what seemed like the worst frames from the challenge video and included them in my static testing. These are the frames selected:
 
-![alt text][challenge1]
-![alt text][challenge2]
-![alt text][challenge3]
+![alt text](./writeup_images/challenge1.jpg)
+![alt text](./writeup_images/challenge2.jpg)
+![alt text](./writeup_images/challenge3.jpg)
 
 My pipeline consisted of 11 steps:
 
@@ -47,7 +39,7 @@ My pipeline consisted of 11 steps:
 
     *Perspective adjustment and line filtering (not used)*: Here I considered several algorithms in an attempt to reject any lines not "stacking up". My theory was that if I adjusted for image perspective it would be easier to further filter lines. The results didn't work out as well as I would have hoped, here's an example image of the masked region with the perspective backed out using a very simple trapezoidal to rectangular mapping. The tall red edges are actually a stack up of numerous shorter edge lines. Ultimately, I didn't utilize this approach.
 
-    ![alt text][perspective]
+    ![alt text](./writeup_images/perspective_adjustment.jpg)
 
 1. *Single-frame line fitting/averaging*: I decided that longer lines had to carry more weight as that was information gleaned and calculated by the Hough transform that connected lines that were very likely part of longer edges in the image. So, I used a weighted average of the end-point coordinates with line-length as the weighting.
 
