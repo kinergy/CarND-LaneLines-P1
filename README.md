@@ -14,8 +14,6 @@ The goals / steps of this project are the following:
 [challenge2]: ./writeup_images/challenge2.jpg "Challenge1"
 [challenge3]: ./writeup_images/challenge3.jpg "Challenge1"
 [perspective]: ./writeup_images/perspective_adjustment.jpg "Perspective Adjustment"
-[bridge1]: ./writeup_images/bridge_hidden_yellow.jpg "Bridge Hidden Yellow"
-[bridge2]: ./writeup_images/bridge_visible_yellow.jpg "Bridge Visible Yellow"
 ---
 
 ### Reflection
@@ -31,8 +29,8 @@ Working on this project I quickly realized that solving the static images and ba
 My pipeline consisted of 11 steps:
 
 1. *Convert to Grayscale*: Doing some research I learned that there are more than one grayscale conversion formulas and that the default conversions are usually designed so that the resulting image is pleasing to the human eye. A typical formula is Y=0.299R+0.587G+0.114B, where the R, G, and B contributions from each pixel are not equally considered. For this project, I set out to pick a formula that would be more pleasing to my lane detection algorithm and make the challenge video easier to deal with. After experimentation I found that picking Y=R (select the red channel), provided a great result and very meaningful improvement. Here are [Seven grayscale conversion algorithms](http://www.tannerhelland.com/3643/grayscale-image-algorithm-vb6/) with example images to help illustrate. See below what a difference this made to the yellow lane line on tan bridge:
-    * **Photoshop's default grayscale conversion** ![alt text][bridge1]
-    * **Photoshop's red filter grayscale conversion** ![alt text][bridge2]
+    * **Photoshop's default grayscale conversion** ![alt text](./writeup_images/bridge_hidden_yellow.jpg)
+    * **Photoshop's red filter grayscale conversion** ![alt text](./writeup_images/bridge_visible_yellow.jpg)
 
 
 1. *Gaussian blur*: Get rid of some noise, settled on `kernel_size=5`
